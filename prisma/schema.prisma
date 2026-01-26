@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ==================== ENUMS ====================
+
+enum Role {
+  ADMIN
+  DEV
+}
+
+enum ProjectStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum SprintRhythm {
+  WEEKLY
+  BIWEEKLY
+}
+
+enum SprintStatus {
+  OPEN
+  CLOSED
+}
+
+enum TicketStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
+enum BugPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum BugStatus {
+  PENDING
+  REAL
+  FALSE
+}
+
+// ==================== MODELS ====================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      Role     @default(DEV)
+  projects  Project[]
+  bugs      Bug[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Project {
+  id        String        @id @default(cuid())
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  status    ProjectStatus @default(ACTIVE)
+  deleted   Boolean       @default(false)
+  
+  // Relations
+  createdBy User     @relation(fields: [userId], references: [id])
+  userId    String
+  sprints   Sprint[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Sprint {
+  id        String       @id @default(cuid())
+  rhythm    SprintRhythm
+  status    SprintStatus @default(OPEN)
+  startDate DateTime
+  endDate   DateTime
+  
+  // Relations
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+  tickets   Ticket[]
+  bugs      Bug[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Ticket {
+  id     String       @id @default(cuid())
+  title  String
+  status TicketStatus @default(TODO)
+  
+  // Relations
+  sprint   Sprint @relation(fields: [sprintId], references: [id], onDelete: Cascade)
+  sprintId String
+  bugs     Bug[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Bug {
+  id          String      @id @default(cuid())
+  description String
+  priority    BugPriority
+  evidenceUrl String?
+  status      BugStatus   @default(PENDING)
+  
+  // Relations
+  ticket      Ticket? @relation(fields: [ticketId], references: [id], onDelete: SetNull)
+  ticketId    String?
+  sprint      Sprint  @relation(fields: [sprintId], references: [id], onDelete: Cascade)
+  sprintId    String
+  reportedBy  User    @relation(fields: [userId], references: [id])
+  userId      String
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
