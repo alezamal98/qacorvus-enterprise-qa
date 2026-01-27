@@ -1,4 +1,4 @@
-import { NextAuthOptions } from "next-auth";
+﻿import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import prisma from "./prisma";
@@ -13,7 +13,7 @@ export const authOptions: NextAuthOptions = {
             },
             async authorize(credentials) {
                 if (!credentials?.email || !credentials?.password) {
-                    throw new Error("Email y contraseña son requeridos");
+                    throw new Error("Email y contraseÃ±a son requeridos");
                 }
 
                 const user = await prisma.user.findUnique({
@@ -30,7 +30,7 @@ export const authOptions: NextAuthOptions = {
                 );
 
                 if (!isPasswordValid) {
-                    throw new Error("Contraseña incorrecta");
+                    throw new Error("ContraseÃ±a incorrecta");
                 }
 
                 return {
@@ -46,14 +46,14 @@ export const authOptions: NextAuthOptions = {
         async jwt({ token, user }) {
             if (user) {
                 token.id = user.id;
-                token.role = (user as { role: string }).role as any;
+                token.role = user.role;
             }
             return token;
         },
         async session({ session, token }) {
             if (session.user) {
-                (session.user as { id: string; role: string }).id = token.id as string;
-                (session.user as { id: string; role: string }).role = token.role as string;
+                session.user.id = token.id;
+                session.user.role = token.role;
             }
             return session;
         },
@@ -66,3 +66,4 @@ export const authOptions: NextAuthOptions = {
     },
     secret: process.env.NEXTAUTH_SECRET,
 };
+

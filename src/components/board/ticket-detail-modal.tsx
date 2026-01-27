@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -37,9 +37,9 @@ export function TicketDetailModal({ open, onOpenChange, ticket }: TicketDetailMo
         if (open) {
             fetchComments();
         }
-    }, [open, ticket.id]);
+    }, [open, fetchComments]);
 
-    const fetchComments = async () => {
+    const fetchComments = useCallback(async () => {
         setIsLoading(true);
         try {
             const res = await fetch(`/api/tickets/${ticket.id}/comments`);
@@ -52,7 +52,7 @@ export function TicketDetailModal({ open, onOpenChange, ticket }: TicketDetailMo
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [ticket.id]);
 
     const handleSendComment = async () => {
         if (!newComment.trim()) return;
@@ -83,7 +83,7 @@ export function TicketDetailModal({ open, onOpenChange, ticket }: TicketDetailMo
                 <DialogHeader>
                     <DialogTitle className="text-xl">{ticket.title}</DialogTitle>
                     <DialogDescription className="text-slate-400">
-                        Detalles del ticket y discusión
+                        Detalles del ticket y discusiÃ³n
                     </DialogDescription>
                 </DialogHeader>
 
@@ -128,7 +128,7 @@ export function TicketDetailModal({ open, onOpenChange, ticket }: TicketDetailMo
                                 </div>
                             ) : comments.length === 0 ? (
                                 <div className="text-center text-slate-500 py-8">
-                                    No hay comentarios aún.
+                                    No hay comentarios aÃºn.
                                 </div>
                             ) : (
                                 comments.map((comment) => (
@@ -152,7 +152,7 @@ export function TicketDetailModal({ open, onOpenChange, ticket }: TicketDetailMo
 
                     <TabsContent value="history">
                         <div className="text-slate-500 text-center py-8">
-                            Próximamente: Historial de cambios
+                            PrÃ³ximamente: Historial de cambios
                         </div>
                     </TabsContent>
                 </Tabs>
@@ -160,3 +160,7 @@ export function TicketDetailModal({ open, onOpenChange, ticket }: TicketDetailMo
         </Dialog>
     );
 }
+
+
+
+

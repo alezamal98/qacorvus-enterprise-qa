@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
@@ -7,7 +7,7 @@ import { z } from "zod";
 const createBugSchema = z.object({
     ticketId: z.string().optional(),
     sprintId: z.string().min(1),
-    description: z.string().min(1, "La descripción es requerida"),
+    description: z.string().min(1, "La descripciÃ³n es requerida"),
     priority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]),
     evidenceUrl: z.string().url().optional().or(z.literal("")),
 });
@@ -95,9 +95,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(bug, { status: 201 });
     } catch (error) {
         if (error instanceof z.ZodError) {
-            const zodError = error as any;
+            const message = error.issues[0]?.message ?? "Invalid input";
             return NextResponse.json(
-                { error: zodError.errors[0]?.message || "Invalid input" },
+                { error: message },
                 { status: 400 }
             );
         }
@@ -108,3 +108,4 @@ export async function POST(request: NextRequest) {
         );
     }
 }
+

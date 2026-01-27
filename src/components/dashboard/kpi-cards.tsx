@@ -1,9 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FolderKanban, Bug, CheckCircle2, AlertTriangle } from "lucide-react";
+import { FolderKanban, CheckCircle2, AlertTriangle } from "lucide-react";
 
 interface Stats {
     totalActiveProjects: number;
@@ -39,7 +39,7 @@ export function KPICards() {
             bgColor: "bg-blue-500/10",
         },
         {
-            title: "Bugs Críticos",
+            title: "Bugs CrÃ­ticos",
             value: stats?.totalCriticalBugs || 0,
             icon: AlertTriangle,
             color: "from-red-500 to-red-600",
@@ -95,3 +95,4 @@ export function KPICards() {
         </div>
     );
 }
+

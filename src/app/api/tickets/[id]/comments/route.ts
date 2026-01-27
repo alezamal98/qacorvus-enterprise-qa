@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
@@ -78,9 +78,9 @@ export async function POST(
         return NextResponse.json(comment);
     } catch (error) {
         if (error instanceof z.ZodError) {
-            const zodError = error as any;
+            const message = error.issues[0]?.message ?? "Invalid input";
             return NextResponse.json(
-                { error: zodError.errors[0]?.message || "Invalid input" },
+                { error: message },
                 { status: 400 }
             );
         }
@@ -91,3 +91,4 @@ export async function POST(
         );
     }
 }
+
