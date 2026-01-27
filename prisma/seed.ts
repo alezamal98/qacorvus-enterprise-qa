@@ -7,10 +7,10 @@ async function main() {
     console.log("🌱 Seeding database...");
 
     // Create Admin User
-    const adminPassword = await bcrypt.hash("admin123", 10);
+    const adminPassword = await bcrypt.hash("admin12345.", 10);
     const admin = await prisma.user.upsert({
         where: { email: "admin@corvus.com" },
-        update: {},
+        update: { password: adminPassword },
         create: {
             email: "admin@corvus.com",
             name: "Admin CORVUS",
@@ -21,10 +21,10 @@ async function main() {
     console.log("✅ Admin user created:", admin.email);
 
     // Create Dev User
-    const devPassword = await bcrypt.hash("dev123", 10);
+    const devPassword = await bcrypt.hash("dev12345.", 10);
     const dev = await prisma.user.upsert({
         where: { email: "dev@corvus.com" },
-        update: {},
+        update: { password: devPassword },
         create: {
             email: "dev@corvus.com",
             name: "Developer QA",
@@ -51,8 +51,8 @@ async function main() {
 
     console.log("\n🎉 Seeding completed!");
     console.log("\n📝 Login credentials:");
-    console.log("   Admin: admin@corvus.com / admin123");
-    console.log("   Dev:   dev@corvus.com / dev123");
+    console.log("   Admin: admin@corvus.com / admin12345.");
+    console.log("   Dev:   dev@corvus.com / dev12345.");
 }
 
 main()

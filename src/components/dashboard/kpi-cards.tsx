@@ -39,7 +39,7 @@ export function KPICards() {
             bgColor: "bg-blue-500/10",
         },
         {
-            title: "Bugs CrÃ­ticos",
+            title: "Bugs Críticos",
             value: stats?.totalCriticalBugs || 0,
             icon: AlertTriangle,
             color: "from-red-500 to-red-600",

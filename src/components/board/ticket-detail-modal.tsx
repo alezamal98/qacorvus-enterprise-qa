@@ -33,12 +33,6 @@ export function TicketDetailModal({ open, onOpenChange, ticket }: TicketDetailMo
     const [newComment, setNewComment] = useState("");
     const [isSending, setIsSending] = useState(false);
 
-    useEffect(() => {
-        if (open) {
-            fetchComments();
-        }
-    }, [open, fetchComments]);
-
     const fetchComments = useCallback(async () => {
         setIsLoading(true);
         try {
@@ -53,6 +47,12 @@ export function TicketDetailModal({ open, onOpenChange, ticket }: TicketDetailMo
             setIsLoading(false);
         }
     }, [ticket.id]);
+
+    useEffect(() => {
+        if (open) {
+            fetchComments();
+        }
+    }, [open, fetchComments]);
 
     const handleSendComment = async () => {
         if (!newComment.trim()) return;
@@ -83,7 +83,7 @@ export function TicketDetailModal({ open, onOpenChange, ticket }: TicketDetailMo
                 <DialogHeader>
                     <DialogTitle className="text-xl">{ticket.title}</DialogTitle>
                     <DialogDescription className="text-slate-400">
-                        Detalles del ticket y discusiÃ³n
+                        Detalles del ticket y discusión
                     </DialogDescription>
                 </DialogHeader>
 
@@ -128,7 +128,7 @@ export function TicketDetailModal({ open, onOpenChange, ticket }: TicketDetailMo
                                 </div>
                             ) : comments.length === 0 ? (
                                 <div className="text-center text-slate-500 py-8">
-                                    No hay comentarios aÃºn.
+                                    No hay comentarios aún.
                                 </div>
                             ) : (
                                 comments.map((comment) => (
@@ -152,7 +152,7 @@ export function TicketDetailModal({ open, onOpenChange, ticket }: TicketDetailMo
 
                     <TabsContent value="history">
                         <div className="text-slate-500 text-center py-8">
-                            PrÃ³ximamente: Historial de cambios
+                            Próximamente: Historial de cambios
                         </div>
                     </TabsContent>
                 </Tabs>
