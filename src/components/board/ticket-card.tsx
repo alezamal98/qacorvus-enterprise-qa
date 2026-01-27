@@ -9,6 +9,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { ReportBugModal } from "./report-bug-modal";
 import { TicketDetailModal } from "./ticket-detail-modal";
 import {
@@ -18,9 +19,11 @@ import {
     Clock,
     PlayCircle,
     Ban,
-    Loader2
+    Loader2,
+    Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface Ticket {
     id: string;
@@ -85,7 +88,9 @@ const statusOrder = ["READY", "TODO", "IN_PROGRESS", "DONE", "BLOCKED"];
 export function TicketCard({ ticket, sprintId, onUpdate }: TicketCardProps) {
     const [bugModalOpen, setBugModalOpen] = useState(false);
     const [detailModalOpen, setDetailModalOpen] = useState(false);
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
 
     const handleStatusUpdate = async (newStatus: string) => {
@@ -108,6 +113,26 @@ export function TicketCard({ ticket, sprintId, onUpdate }: TicketCardProps) {
         } finally {
             setIsUpdating(false);
             setUpdatingStatus(null);
+        }
+    };
+
+    const handleDelete = async () => {
+        setIsDeleting(true);
+        try {
+            const res = await fetch(`/api/tickets/${ticket.id}`, {
+                method: "DELETE",
+            });
+
+            if (!res.ok) throw new Error("Error deleting ticket");
+
+            toast.success("Ticket eliminado");
+            onUpdate();
+        } catch (error) {
+            console.error(error);
+            toast.error("Error al eliminar ticket");
+        } finally {
+            setIsDeleting(false);
+            setDeleteConfirmOpen(false);
         }
     };
 
@@ -170,15 +195,24 @@ export function TicketCard({ ticket, sprintId, onUpdate }: TicketCardProps) {
                         </div>
                     </TooltipProvider>
                 </CardHeader>
-                <CardContent className="pt-2">
+                <CardContent className="pt-2 flex gap-2">
                     <Button
                         variant="outline"
                         size="sm"
-                        className="w-full gap-2 text-red-400 border-red-500/30 hover:bg-red-500/10 hover:text-red-300"
+                        className="flex-1 gap-2 text-red-400 border-red-500/30 hover:bg-red-500/10 hover:text-red-300"
                         onClick={() => setBugModalOpen(true)}
                     >
                         <Bug className="w-4 h-4" />
                         Reportar Bug
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-slate-500 hover:text-red-400 hover:bg-red-500/10"
+                        onClick={() => setDeleteConfirmOpen(true)}
+                        disabled={isDeleting}
+                    >
+                        <Trash2 className="w-4 h-4" />
                     </Button>
                 </CardContent>
             </Card>
@@ -196,6 +230,17 @@ export function TicketCard({ ticket, sprintId, onUpdate }: TicketCardProps) {
                 open={detailModalOpen}
                 onOpenChange={setDetailModalOpen}
                 ticket={ticket}
+            />
+
+            <ConfirmDialog
+                open={deleteConfirmOpen}
+                onOpenChange={setDeleteConfirmOpen}
+                title="Eliminar Ticket"
+                description={`¿Estás seguro de eliminar "${ticket.title}"? Esta acción no se puede deshacer.`}
+                confirmText="Eliminar"
+                cancelText="Cancelar"
+                variant="destructive"
+                onConfirm={handleDelete}
             />
         </>
     );

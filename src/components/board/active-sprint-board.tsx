@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { TicketCard } from "./ticket-card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatDate } from "@/lib/utils";
@@ -13,6 +14,7 @@ import {
     CheckCircle2,
     Clock,
     XCircle,
+    Plus,
 } from "lucide-react";
 
 interface Ticket {
@@ -54,6 +56,9 @@ export function ActiveSprintBoard({
 }: ActiveSprintBoardProps) {
     const [isClosing, setIsClosing] = useState(false);
     const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+    const [showAddTicket, setShowAddTicket] = useState(false);
+    const [newTicketTitle, setNewTicketTitle] = useState("");
+    const [isAddingTicket, setIsAddingTicket] = useState(false);
 
     const handleCloseSprint = async () => {
         setShowCloseConfirm(false);
@@ -74,6 +79,34 @@ export function ActiveSprintBoard({
             toast.error("Error al finalizar sprint");
         } finally {
             setIsClosing(false);
+        }
+    };
+
+    const handleAddTicket = async () => {
+        if (!newTicketTitle.trim()) return;
+
+        setIsAddingTicket(true);
+        try {
+            const res = await fetch("/api/tickets", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    title: newTicketTitle.trim(),
+                    sprintId: sprint.id,
+                }),
+            });
+
+            if (!res.ok) throw new Error("Error creating ticket");
+
+            toast.success("Ticket creado");
+            setNewTicketTitle("");
+            setShowAddTicket(false);
+            onUpdate();
+        } catch (error) {
+            console.error(error);
+            toast.error("Error al crear ticket");
+        } finally {
+            setIsAddingTicket(false);
         }
     };
 
@@ -126,9 +159,52 @@ export function ActiveSprintBoard({
 
             {/* Tickets Grid */}
             <div>
-                <h3 className="text-lg font-semibold text-white mb-4">
-                    Tickets del Sprint ({sprint.tickets.length})
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-white">
+                        Tickets del Sprint ({sprint.tickets.length})
+                    </h3>
+                    {!showAddTicket && (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-2"
+                            onClick={() => setShowAddTicket(true)}
+                        >
+                            <Plus className="w-4 h-4" />
+                            Agregar Ticket
+                        </Button>
+                    )}
+                </div>
+
+                {showAddTicket && (
+                    <div className="flex gap-2 mb-4">
+                        <Input
+                            placeholder="Título del ticket..."
+                            value={newTicketTitle}
+                            onChange={(e) => setNewTicketTitle(e.target.value)}
+                            onKeyDown={(e) => e.key === "Enter" && handleAddTicket()}
+                            className="flex-1 bg-slate-900/50 border-slate-700"
+                            autoFocus
+                        />
+                        <Button
+                            onClick={handleAddTicket}
+                            disabled={isAddingTicket || !newTicketTitle.trim()}
+                            isLoading={isAddingTicket}
+                        >
+                            Crear
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            onClick={() => {
+                                setShowAddTicket(false);
+                                setNewTicketTitle("");
+                            }}
+                        >
+                            Cancelar
+                        </Button>
+                    </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {sprint.tickets.map((ticket) => (
                         <TicketCard
