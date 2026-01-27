@@ -34,6 +34,34 @@ async function main() {
     });
     console.log("✅ Dev user created:", dev.email);
 
+    // Create Inti (DEV)
+    const intiPassword = await bcrypt.hash("inti12345.", 10);
+    const inti = await prisma.user.upsert({
+        where: { email: "inti@corvus.com" },
+        update: { password: intiPassword },
+        create: {
+            email: "inti@corvus.com",
+            name: "Inti",
+            password: intiPassword,
+            role: "DEV",
+        },
+    });
+    console.log("✅ Inti created:", inti.email);
+
+    // Create David (DEV)
+    const davidPassword = await bcrypt.hash("david12345.", 10);
+    const david = await prisma.user.upsert({
+        where: { email: "david@corvus.com" },
+        update: { password: davidPassword },
+        create: {
+            email: "david@corvus.com",
+            name: "David",
+            password: davidPassword,
+            role: "DEV",
+        },
+    });
+    console.log("✅ David created:", david.email);
+
     // Create Sample Project
     const project = await prisma.project.upsert({
         where: { id: "demo-project-1" },
@@ -53,6 +81,8 @@ async function main() {
     console.log("\n📝 Login credentials:");
     console.log("   Admin: admin@corvus.com / admin12345.");
     console.log("   Dev:   dev@corvus.com / dev12345.");
+    console.log("   Inti:  inti@corvus.com / inti12345.");
+    console.log("   David: david@corvus.com / david12345.");
 }
 
 main()
