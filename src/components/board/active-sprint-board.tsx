@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TicketCard } from "./ticket-card";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatDate } from "@/lib/utils";
 import { toast } from "sonner";
 import {
@@ -52,12 +53,10 @@ export function ActiveSprintBoard({
     onUpdate,
 }: ActiveSprintBoardProps) {
     const [isClosing, setIsClosing] = useState(false);
+    const [showCloseConfirm, setShowCloseConfirm] = useState(false);
 
     const handleCloseSprint = async () => {
-        if (!confirm("¿Estás seguro de finalizar este sprint? Esta acción no se puede deshacer.")) {
-            return;
-        }
-
+        setShowCloseConfirm(false);
         setIsClosing(true);
 
         try {
@@ -148,13 +147,24 @@ export function ActiveSprintBoard({
                     variant="destructive"
                     size="lg"
                     className="gap-2"
-                    onClick={handleCloseSprint}
+                    onClick={() => setShowCloseConfirm(true)}
                     isLoading={isClosing}
                 >
                     <XCircle className="w-5 h-5" />
                     Finalizar Sprint
                 </Button>
             </div>
+
+            <ConfirmDialog
+                open={showCloseConfirm}
+                onOpenChange={setShowCloseConfirm}
+                title="Finalizar Sprint"
+                description="¿Estás seguro de finalizar este sprint? Esta acción no se puede deshacer."
+                confirmText="Finalizar"
+                cancelText="Cancelar"
+                variant="destructive"
+                onConfirm={handleCloseSprint}
+            />
         </div>
     );
 }

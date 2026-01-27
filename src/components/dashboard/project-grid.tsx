@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatDate } from "@/lib/utils";
 import { toast } from "sonner";
 import { Calendar, ArrowRight, Trash2, GitBranch } from "lucide-react";
@@ -25,6 +26,7 @@ interface Project {
 export function ProjectGrid() {
     const [projects, setProjects] = useState<Project[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [deleteId, setDeleteId] = useState<string | null>(null);
     const { data: session } = useSession();
     const router = useRouter();
     const isAdmin = session?.user?.role === "ADMIN";
@@ -46,17 +48,19 @@ export function ProjectGrid() {
         }
     }
 
-    async function handleDelete(id: string) {
-        if (!confirm("¿Estás seguro de eliminar este proyecto?")) return;
+    async function handleDelete() {
+        if (!deleteId) return;
 
         try {
-            const res = await fetch(`/api/projects/${id}`, { method: "DELETE" });
+            const res = await fetch(`/api/projects/${deleteId}`, { method: "DELETE" });
             if (!res.ok) throw new Error("Error al eliminar");
 
             toast.success("Proyecto eliminado");
-            setProjects(projects.filter(p => p.id !== id));
+            setProjects(projects.filter(p => p.id !== deleteId));
         } catch {
             toast.error("Error al eliminar proyecto");
+        } finally {
+            setDeleteId(null);
         }
     }
 
@@ -145,7 +149,7 @@ export function ProjectGrid() {
                                 <Button
                                     variant="destructive"
                                     size="icon"
-                                    onClick={() => handleDelete(project.id)}
+                                    onClick={() => setDeleteId(project.id)}
                                 >
                                     <Trash2 className="w-4 h-4" />
                                 </Button>
@@ -154,6 +158,17 @@ export function ProjectGrid() {
                     </CardContent>
                 </Card>
             ))}
+
+            <ConfirmDialog
+                open={!!deleteId}
+                onOpenChange={(open) => !open && setDeleteId(null)}
+                title="Eliminar Proyecto"
+                description="¿Estás seguro de eliminar este proyecto? Esta acción no se puede deshacer."
+                confirmText="Eliminar"
+                cancelText="Cancelar"
+                variant="destructive"
+                onConfirm={handleDelete}
+            />
         </div>
     );
 }
