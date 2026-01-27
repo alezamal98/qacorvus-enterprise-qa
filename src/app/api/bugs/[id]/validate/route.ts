@@ -48,8 +48,9 @@ export async function PATCH(
         return NextResponse.json(bug);
     } catch (error) {
         if (error instanceof z.ZodError) {
+            const zodError = error as any;
             return NextResponse.json(
-                { error: error.errors[0].message },
+                { error: zodError.errors[0]?.message || "Invalid input" },
                 { status: 400 }
             );
         }

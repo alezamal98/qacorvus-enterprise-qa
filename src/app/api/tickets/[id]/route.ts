@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 import { z } from "zod";
 
 const updateTicketSchema = z.object({
-    status: z.enum(["TODO", "IN_PROGRESS", "DONE"]),
+    status: z.enum(["READY", "TODO", "IN_PROGRESS", "DONE", "BLOCKED"]),
 });
 
 export async function PATCH(
@@ -25,14 +25,15 @@ export async function PATCH(
 
         const ticket = await prisma.ticket.update({
             where: { id },
-            data: { status: validatedData.status },
+            data: { status: validatedData.status as any },
         });
 
         return NextResponse.json(ticket);
     } catch (error) {
         if (error instanceof z.ZodError) {
+            const zodError = error as any;
             return NextResponse.json(
-                { error: error.errors[0].message },
+                { error: zodError.errors[0]?.message || "Invalid input" },
                 { status: 400 }
             );
         }

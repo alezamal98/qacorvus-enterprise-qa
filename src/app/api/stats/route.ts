@@ -17,6 +17,8 @@ export async function GET() {
             totalCriticalBugs,
             totalSolvedBugs,
             recentBugs,
+            bugsByPriority,
+            ticketsByStatus
         ] = await Promise.all([
             // Total active projects
             prisma.project.count({
@@ -47,6 +49,16 @@ export async function GET() {
                     },
                 },
             }),
+            // Bugs by Priority
+            prisma.bug.groupBy({
+                by: ['priority'],
+                _count: { priority: true },
+            }),
+            // Tickets by Status
+            prisma.ticket.groupBy({
+                by: ['status'],
+                _count: { status: true },
+            }),
         ]);
 
         return NextResponse.json({
@@ -54,6 +66,8 @@ export async function GET() {
             totalCriticalBugs,
             totalSolvedBugs,
             recentBugs,
+            bugsByPriority,
+            ticketsByStatus
         });
     } catch (error) {
         console.error("Error fetching stats:", error);

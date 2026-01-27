@@ -95,8 +95,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(bug, { status: 201 });
     } catch (error) {
         if (error instanceof z.ZodError) {
+            const zodError = error as any;
             return NextResponse.json(
-                { error: error.errors[0].message },
+                { error: zodError.errors[0]?.message || "Invalid input" },
                 { status: 400 }
             );
         }
