@@ -1,6 +1,7 @@
 import { KPICards } from "@/components/dashboard/kpi-cards";
 import { ProjectGrid } from "@/components/dashboard/project-grid";
 import { CreateProjectModal } from "@/components/dashboard/create-project-modal";
+import { RecentBugs } from "@/components/dashboard/recent-bugs";
 
 export default function DashboardPage() {
     return (
@@ -19,10 +20,19 @@ export default function DashboardPage() {
             {/* KPI Cards */}
             <KPICards />
 
-            {/* Projects Section */}
-            <div className="space-y-4">
-                <h2 className="text-xl font-semibold text-white">Proyectos</h2>
-                <ProjectGrid />
+            {/* Dashboard Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Projects Section (Main column) */}
+                <div className="lg:col-span-2 space-y-4">
+                    <h2 className="text-xl font-semibold text-white">Proyectos</h2>
+                    <ProjectGrid />
+                </div>
+
+                {/* Sidebar Column */}
+                <div className="space-y-4">
+                    <h2 className="text-xl font-semibold text-white">Actividad</h2>
+                    <RecentBugs />
+                </div>
             </div>
         </div>
     );

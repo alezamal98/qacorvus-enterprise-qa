@@ -42,14 +42,14 @@ interface ActiveSprintBoardProps {
     sprint: Sprint;
     projectName: string;
     onSprintClosed: () => void;
-    onBugReported: () => void;
+    onUpdate: () => void;
 }
 
 export function ActiveSprintBoard({
     sprint,
     projectName,
     onSprintClosed,
-    onBugReported,
+    onUpdate,
 }: ActiveSprintBoardProps) {
     const [isClosing, setIsClosing] = useState(false);
 
@@ -136,7 +136,7 @@ export function ActiveSprintBoard({
                             key={ticket.id}
                             ticket={ticket}
                             sprintId={sprint.id}
-                            onBugReported={onBugReported}
+                            onUpdate={onUpdate}
                         />
                     ))}
                 </div>

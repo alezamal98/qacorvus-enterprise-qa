@@ -16,19 +16,39 @@ interface Ticket {
 interface TicketCardProps {
     ticket: Ticket;
     sprintId: string;
-    onBugReported: () => void;
+    onUpdate: () => void;
 }
 
-const statusConfig: Record<string, { icon: React.ElementType; color: string; label: string }> = {
-    TODO: { icon: Circle, color: "text-slate-400", label: "Pendiente" },
-    IN_PROGRESS: { icon: Clock, color: "text-blue-400", label: "En Progreso" },
-    DONE: { icon: CheckCircle, color: "text-green-400", label: "Completado" },
+const statusConfig: Record<string, { icon: React.ElementType; color: string; label: string; next: string }> = {
+    TODO: { icon: Circle, color: "text-slate-400", label: "Pendiente", next: "IN_PROGRESS" },
+    IN_PROGRESS: { icon: Clock, color: "text-blue-400", label: "En Progreso", next: "DONE" },
+    DONE: { icon: CheckCircle, color: "text-green-400", label: "Completado", next: "TODO" },
 };
 
-export function TicketCard({ ticket, sprintId, onBugReported }: TicketCardProps) {
+export function TicketCard({ ticket, sprintId, onUpdate }: TicketCardProps) {
     const [bugModalOpen, setBugModalOpen] = useState(false);
+    const [isUpdating, setIsUpdating] = useState(false);
     const status = statusConfig[ticket.status] || statusConfig.TODO;
     const StatusIcon = status.icon;
+
+    const handleStatusUpdate = async () => {
+        setIsUpdating(true);
+        try {
+            const res = await fetch(`/api/tickets/${ticket.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: status.next }),
+            });
+
+            if (!res.ok) throw new Error("Error updating status");
+
+            onUpdate();
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsUpdating(false);
+        }
+    };
 
     return (
         <>
@@ -38,10 +58,17 @@ export function TicketCard({ ticket, sprintId, onBugReported }: TicketCardProps)
                         <CardTitle className="text-sm font-medium text-white leading-tight">
                             {ticket.title}
                         </CardTitle>
-                        <Badge variant="outline" className="shrink-0">
-                            <StatusIcon className={`w-3 h-3 mr-1 ${status.color}`} />
+                        <button
+                            disabled={isUpdating}
+                            onClick={handleStatusUpdate}
+                            className={cn(
+                                "flex items-center rounded-lg border px-2 py-0.5 text-xs font-semibold transition-all hover:bg-slate-800 disabled:opacity-50",
+                                ticket.status === "DONE" ? "border-green-500/30 text-green-400 bg-green-500/10" : "border-slate-600 text-slate-300"
+                            )}
+                        >
+                            <StatusIcon className={`w-3 h-3 mr-1 ${status.color} ${isUpdating ? "animate-spin" : ""}`} />
                             {status.label}
-                        </Badge>
+                        </button>
                     </div>
                 </CardHeader>
                 <CardContent className="pt-2">
@@ -63,7 +90,7 @@ export function TicketCard({ ticket, sprintId, onBugReported }: TicketCardProps)
                 ticketId={ticket.id}
                 ticketTitle={ticket.title}
                 sprintId={sprintId}
-                onBugReported={onBugReported}
+                onBugReported={onUpdate}
             />
         </>
     );

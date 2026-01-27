@@ -101,10 +101,10 @@ export default function ProjectBoardPage() {
             {/* Conditional Rendering based on Sprint State */}
             {activeSprint ? (
                 <ActiveSprintBoard
-                    sprint={activeSprint}
+                    sprint={activeSprint!}
                     projectName={project.name}
                     onSprintClosed={fetchProject}
-                    onBugReported={fetchProject}
+                    onUpdate={fetchProject}
                 />
             ) : (
                 <SprintSetup
