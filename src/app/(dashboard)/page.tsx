@@ -4,6 +4,8 @@ import { CreateProjectModal } from "@/components/dashboard/create-project-modal"
 import { RecentBugs } from "@/components/dashboard/recent-bugs";
 import { ChartsContainer } from "@/components/dashboard/analytics/charts-container";
 
+export const dynamic = "force-dynamic";
+
 export default function DashboardPage() {
     return (
         <div className="space-y-8">
