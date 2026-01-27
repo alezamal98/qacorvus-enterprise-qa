@@ -10,7 +10,7 @@ const createProjectSchema = z.object({
     endDate: z.string().transform((str) => new Date(str)),
 });
 
-// GET all projects
+// GET all projects (filtered by role)
 export async function GET() {
     try {
         const session = await getServerSession(authOptions);
@@ -19,8 +19,19 @@ export async function GET() {
             return NextResponse.json({ error: "No autorizado" }, { status: 401 });
         }
 
+        // Role-based filtering: DEVs see only their projects, ADMINs see all
+        const whereClause = session.user.role === "ADMIN"
+            ? { deleted: false }
+            : {
+                deleted: false,
+                OR: [
+                    { userId: session.user.id },  // Created by user
+                    { assignedUsers: { some: { userId: session.user.id } } }  // Assigned to user
+                ]
+            };
+
         const projects = await prisma.project.findMany({
-            where: { deleted: false },
+            where: whereClause,
             include: {
                 createdBy: {
                     select: { name: true, email: true },

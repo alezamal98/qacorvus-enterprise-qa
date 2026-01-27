@@ -8,9 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { ProjectAssignmentModal } from "./project-assignment-modal";
 import { formatDate } from "@/lib/utils";
 import { toast } from "sonner";
-import { Calendar, ArrowRight, Trash2, GitBranch } from "lucide-react";
+import { Calendar, ArrowRight, Trash2, GitBranch, Users } from "lucide-react";
 
 interface Project {
     id: string;
@@ -27,6 +28,7 @@ export function ProjectGrid() {
     const [projects, setProjects] = useState<Project[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [assignProject, setAssignProject] = useState<Project | null>(null);
     const { data: session } = useSession();
     const router = useRouter();
     const isAdmin = session?.user?.role === "ADMIN";
@@ -146,13 +148,23 @@ export function ProjectGrid() {
                             </Button>
 
                             {isAdmin && (
-                                <Button
-                                    variant="destructive"
-                                    size="icon"
-                                    onClick={() => setDeleteId(project.id)}
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                </Button>
+                                <>
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => setAssignProject(project)}
+                                        title="Asignar Equipo"
+                                    >
+                                        <Users className="w-4 h-4" />
+                                    </Button>
+                                    <Button
+                                        variant="destructive"
+                                        size="icon"
+                                        onClick={() => setDeleteId(project.id)}
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                </>
                             )}
                         </div>
                     </CardContent>
@@ -169,6 +181,15 @@ export function ProjectGrid() {
                 variant="destructive"
                 onConfirm={handleDelete}
             />
+
+            {assignProject && (
+                <ProjectAssignmentModal
+                    open={!!assignProject}
+                    onOpenChange={(open) => !open && setAssignProject(null)}
+                    projectId={assignProject.id}
+                    projectName={assignProject.name}
+                />
+            )}
         </div>
     );
 }

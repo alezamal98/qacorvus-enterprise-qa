@@ -63,8 +63,22 @@ model User {
   bugs      Bug[]
   comments  Comment[]
   meetings  Meeting[]
+  assignedProjects ProjectAssignment[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// Junction table for project assignments (many-to-many)
+model ProjectAssignment {
+  id        String   @id @default(cuid())
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([projectId, userId])
 }
 
 model Project {
@@ -80,6 +94,7 @@ model Project {
   userId    String
   sprints   Sprint[]
   meetings  Meeting[]
+  assignedUsers ProjectAssignment[]
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
