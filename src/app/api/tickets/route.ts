@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
+import { logActivity } from "@/lib/activity";
 
 const createTicketSchema = z.object({
     title: z.string().min(1, "El título es requerido"),
@@ -20,12 +21,32 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const validatedData = createTicketSchema.parse(body);
 
+        // Fetch sprint to get projectId
+        const sprint = await prisma.sprint.findUnique({
+            where: { id: validatedData.sprintId },
+            select: { projectId: true }
+        });
+
+        if (!sprint) {
+            return NextResponse.json({ error: "Sprint not found" }, { status: 404 });
+        }
+
         const ticket = await prisma.ticket.create({
             data: {
                 title: validatedData.title,
                 sprintId: validatedData.sprintId,
                 status: "TODO",
             },
+        });
+
+        // Log Activity
+        await logActivity({
+            projectId: sprint.projectId,
+            userId: session.user.id,
+            entityType: "TICKET",
+            entityId: ticket.id,
+            action: "CREATE",
+            details: `Created ticket: ${ticket.title}`
         });
 
         return NextResponse.json(ticket, { status: 201 });

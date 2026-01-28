@@ -13,6 +13,7 @@ import {
     LogOut,
     Shield,
 } from "lucide-react";
+import { NotificationsPopover } from "@/components/layout/notifications-popover";
 
 const navigation = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -112,6 +113,7 @@ export function Sidebar() {
                             {session?.user?.email}
                         </p>
                     </div>
+                    <NotificationsPopover />
                 </div>
                 <Button
                     variant="ghost"
