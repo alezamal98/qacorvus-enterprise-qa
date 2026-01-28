@@ -38,6 +38,13 @@ export function RecentBugs() {
         fetchStats();
     }, []);
 
+    const priorityLabels: Record<string, string> = {
+        LOW: "Baja",
+        MEDIUM: "Media",
+        HIGH: "Alta",
+        CRITICAL: "Crítica",
+    };
+
     const priorityColors: Record<string, string> = {
         LOW: "text-green-400",
         MEDIUM: "text-yellow-400",
@@ -82,7 +89,7 @@ export function RecentBugs() {
                                     {bug.description}
                                 </p>
                                 <Badge variant="outline" className={`${priorityColors[bug.priority]} border-current/20 bg-current/5 shrink-0`}>
-                                    {bug.priority}
+                                    {priorityLabels[bug.priority] || bug.priority}
                                 </Badge>
                             </div>
                             <div className="flex items-center gap-4 text-xs text-slate-500">

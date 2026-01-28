@@ -10,6 +10,13 @@ const COLORS = {
     LOW: "#3b82f6",      // blue-500
 };
 
+const LABELS: Record<string, string> = {
+    CRITICAL: "Crítica",
+    HIGH: "Alta",
+    MEDIUM: "Media",
+    LOW: "Baja",
+};
+
 interface SeverityChartProps {
     data: {
         priority: string;
@@ -20,8 +27,9 @@ interface SeverityChartProps {
 export function SeverityChart({ data }: SeverityChartProps) {
     // Transform data for Recharts
     const chartData = data.map((item) => ({
-        name: item.priority,
+        name: LABELS[item.priority] || item.priority,
         value: item._count.priority,
+        priority: item.priority, // keep original for color lookup
     }));
 
     if (chartData.length === 0) {
@@ -58,7 +66,7 @@ export function SeverityChart({ data }: SeverityChartProps) {
                                 {chartData.map((entry, index) => (
                                     <Cell
                                         key={`cell-${index}`}
-                                        fill={COLORS[entry.name as keyof typeof COLORS] || "#94a3b8"}
+                                        fill={COLORS[entry.priority as keyof typeof COLORS] || "#94a3b8"}
                                         stroke="rgba(0,0,0,0.5)"
                                     />
                                 ))}

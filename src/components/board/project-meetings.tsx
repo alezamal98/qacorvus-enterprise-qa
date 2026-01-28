@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Calendar, FileText, CheckSquare, Users } from "lucide-react";
+import { Plus, Calendar, FileText, CheckSquare, Users, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreateMeetingModal } from "./create-meeting-modal";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { toast } from "sonner";
 
 interface Meeting {
     id: string;
@@ -27,6 +29,7 @@ export function ProjectMeetings({ projectId }: ProjectMeetingsProps) {
     const [meetings, setMeetings] = useState<Meeting[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [deleteId, setDeleteId] = useState<string | null>(null);
 
     const fetchMeetings = useCallback(async () => {
         try {
@@ -45,6 +48,20 @@ export function ProjectMeetings({ projectId }: ProjectMeetingsProps) {
     useEffect(() => {
         fetchMeetings();
     }, [fetchMeetings]);
+
+    const handleDelete = async () => {
+        if (!deleteId) return;
+        try {
+            const res = await fetch(`/api/meetings/${deleteId}`, { method: "DELETE" });
+            if (!res.ok) throw new Error("Error al eliminar");
+            toast.success("Reunión eliminada");
+            setMeetings(meetings.filter(m => m.id !== deleteId));
+        } catch {
+            toast.error("Error al eliminar reunión");
+        } finally {
+            setDeleteId(null);
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -76,6 +93,14 @@ export function ProjectMeetings({ projectId }: ProjectMeetingsProps) {
                                     <span className="text-lg font-semibold truncate" title={meeting.title}>
                                         {meeting.title}
                                     </span>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8 text-slate-400 hover:text-red-400 hover:bg-red-500/10"
+                                        onClick={() => setDeleteId(meeting.id)}
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </Button>
                                 </CardTitle>
                                 <div className="flex items-center text-sm text-slate-400 mt-1">
                                     <Calendar className="w-4 h-4 mr-2" />
@@ -118,6 +143,17 @@ export function ProjectMeetings({ projectId }: ProjectMeetingsProps) {
                 onClose={() => setIsCreateModalOpen(false)}
                 onMeetingCreated={fetchMeetings}
                 projectId={projectId}
+            />
+
+            <ConfirmDialog
+                open={!!deleteId}
+                onOpenChange={(open) => !open && setDeleteId(null)}
+                title="Eliminar Reunión"
+                description="¿Estás seguro de eliminar esta reunión? Esta acción no se puede deshacer."
+                confirmText="Eliminar"
+                cancelText="Cancelar"
+                variant="destructive"
+                onConfirm={handleDelete}
             />
         </div>
     );
