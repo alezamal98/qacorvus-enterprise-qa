@@ -121,23 +121,29 @@ export default function QAPanelPage() {
                         <div className="relative flex-1">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                             <Input
-                                placeholder="Buscar por ID de Sprint..."
+                                placeholder="Buscar por nombre de ticket o proyecto..."
                                 value={searchSprintId}
                                 onChange={(e) => setSearchSprintId(e.target.value)}
-                                className="pl-10"
+                                className="pl-10 bg-slate-950 border-slate-700"
                             />
                         </div>
                         <div className="flex items-center gap-2">
-                            <Filter className="w-4 h-4 text-slate-500" />
-                            {["all", "PENDING", "REAL", "FALSE"].map((status) => (
+                            <Filter className="w-4 h-4 text-slate-400" />
+                            {[
+                                { value: "all", label: "Todos" },
+                                { value: "PENDING", label: "Pendientes" },
+                                { value: "REAL", label: "REAL" },
+                                { value: "FALSE", label: "FALSO" },
+                            ].map((status) => (
                                 <Button
-                                    key={status}
+                                    key={status.value}
                                     type="button"
-                                    variant={statusFilter === status ? "default" : "outline"}
+                                    variant={statusFilter === status.value ? "default" : "outline"}
                                     size="sm"
-                                    onClick={() => setStatusFilter(status)}
+                                    className={statusFilter === status.value ? "bg-purple-600 hover:bg-purple-700" : "border-slate-600 text-slate-300 hover:text-white"}
+                                    onClick={() => setStatusFilter(status.value)}
                                 >
-                                    {status === "all" ? "Todos" : status === "PENDING" ? "Pendientes" : status}
+                                    {status.label}
                                 </Button>
                             ))}
                         </div>

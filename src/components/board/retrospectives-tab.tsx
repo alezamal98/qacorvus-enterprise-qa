@@ -18,6 +18,7 @@ interface RetroItem {
 
 interface SprintWithRetro {
     id: string;
+    name?: string;
     endDate: string;
     retroItems: RetroItem[];
 }
@@ -84,7 +85,7 @@ export function RetrospectivesTab({ projectId }: { projectId: string }) {
                     <SelectContent>
                         {sprints.map(s => (
                             <SelectItem key={s.id} value={s.id}>
-                                Sprint {new Date(s.endDate).toLocaleDateString()}
+                                {s.name || `Sprint ${new Date(s.endDate).toLocaleDateString()}`}
                             </SelectItem>
                         ))}
                     </SelectContent>

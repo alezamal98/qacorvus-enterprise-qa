@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -21,6 +22,7 @@ interface SprintSetupProps {
 }
 
 export function SprintSetup({ projectId, onSprintCreated }: SprintSetupProps) {
+    const [name, setName] = useState("");
     const [rhythm, setRhythm] = useState<"WEEKLY" | "BIWEEKLY">("WEEKLY");
     const [ticketsText, setTicketsText] = useState("");
     const [isLoading, setIsLoading] = useState(false);
@@ -44,7 +46,7 @@ export function SprintSetup({ projectId, onSprintCreated }: SprintSetupProps) {
             const res = await fetch("/api/sprints", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ projectId, rhythm, tickets }),
+                body: JSON.stringify({ projectId, rhythm, tickets, name: name.trim() || undefined }),
             });
 
             if (!res.ok) {
@@ -74,6 +76,16 @@ export function SprintSetup({ projectId, onSprintCreated }: SprintSetupProps) {
             </CardHeader>
             <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="space-y-2">
+                        <Label>Nombre del Sprint</Label>
+                        <Input
+                            placeholder="Ej: Sprint #1 - Login & Registro"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            className="bg-slate-950 border-slate-700"
+                        />
+                    </div>
+
                     <div className="space-y-2">
                         <Label className="flex items-center gap-2">
                             <CalendarDays className="w-4 h-4" />

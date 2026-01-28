@@ -8,6 +8,7 @@ const createSprintSchema = z.object({
     projectId: z.string().min(1),
     rhythm: z.enum(["WEEKLY", "BIWEEKLY"]),
     tickets: z.array(z.string().min(1)).min(1, "Se requiere al menos un ticket"),
+    name: z.string().optional(),
 });
 
 // GET sprints by project
@@ -81,6 +82,7 @@ export async function POST(request: NextRequest) {
                 data: {
                     projectId: validatedData.projectId,
                     rhythm: validatedData.rhythm,
+                    name: validatedData.name,
                     startDate,
                     endDate,
                     status: "OPEN",

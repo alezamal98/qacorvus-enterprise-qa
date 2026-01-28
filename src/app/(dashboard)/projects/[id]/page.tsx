@@ -114,7 +114,7 @@ export default function ProjectBoardPage() {
                     <TabsTrigger value="board" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">Tablero</TabsTrigger>
                     <TabsTrigger value="roadmap" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">Objetivos</TabsTrigger>
                     <TabsTrigger value="meetings" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">Reuniones</TabsTrigger>
-                    <TabsTrigger value="retro" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">Retrospectivas</TabsTrigger>
+                    <TabsTrigger value="retro" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">Historial Sprints</TabsTrigger>
                     <TabsTrigger value="metrics" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">Métricas</TabsTrigger>
                     <TabsTrigger value="activity" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">Actividad</TabsTrigger>
                 </TabsList>
@@ -124,6 +124,7 @@ export default function ProjectBoardPage() {
                     {activeSprint ? (
                         <ActiveSprintBoard
                             sprint={activeSprint!}
+                            projectId={project.id}
                             projectName={project.name}
                             onSprintClosed={fetchProject}
                             onUpdate={fetchProject}
@@ -141,7 +142,7 @@ export default function ProjectBoardPage() {
                 </TabsContent>
 
                 <TabsContent value="roadmap" className="mt-6">
-                    <EpicsTab projectId={project.id} />
+                    <EpicsTab projectId={project.id} sprints={project.sprints} />
                 </TabsContent>
 
                 <TabsContent value="retro" className="mt-6">

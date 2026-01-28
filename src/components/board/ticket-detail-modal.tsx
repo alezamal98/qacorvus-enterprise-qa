@@ -5,7 +5,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Send } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2, Send, Target } from "lucide-react";
+import { toast } from "sonner";
 
 interface Comment {
     id: string;
@@ -17,6 +19,11 @@ interface Comment {
     };
 }
 
+interface Epic {
+    id: string;
+    title: string;
+}
+
 interface TicketDetailModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
@@ -25,13 +32,34 @@ interface TicketDetailModalProps {
         title: string;
         status: string;
     };
+    projectId: string;
+    onUpdate: () => void;
 }
 
-export function TicketDetailModal({ open, onOpenChange, ticket }: TicketDetailModalProps) {
+export function TicketDetailModal({ open, onOpenChange, ticket, projectId, onUpdate }: TicketDetailModalProps) {
     const [comments, setComments] = useState<Comment[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [newComment, setNewComment] = useState("");
     const [isSending, setIsSending] = useState(false);
+
+    // Epic Management State
+    const [epics, setEpics] = useState<Epic[]>([]);
+    const [selectedEpicId, setSelectedEpicId] = useState<string | null | undefined>(undefined);
+    const [isEpicsLoading, setIsEpicsLoading] = useState(false);
+    const [isUpdatingEpic, setIsUpdatingEpic] = useState(false);
+
+    // Initial Fetch
+    const fetchTicketDetails = useCallback(async () => {
+        try {
+            const res = await fetch(`/api/tickets/${ticket.id}`);
+            if (res.ok) {
+                const data = await res.json();
+                setSelectedEpicId(data.epicId || "unassigned");
+            }
+        } catch (error) {
+            console.error("Error fetching ticket details:", error);
+        }
+    }, [ticket.id]);
 
     const fetchComments = useCallback(async () => {
         setIsLoading(true);
@@ -48,11 +76,28 @@ export function TicketDetailModal({ open, onOpenChange, ticket }: TicketDetailMo
         }
     }, [ticket.id]);
 
+    const fetchEpics = useCallback(async () => {
+        setIsEpicsLoading(true);
+        try {
+            const res = await fetch(`/api/projects/${projectId}/epics`);
+            if (res.ok) {
+                const data = await res.json();
+                setEpics(data);
+            }
+        } catch (error) {
+            console.error("Error fetching epics:", error);
+        } finally {
+            setIsEpicsLoading(false);
+        }
+    }, [projectId]);
+
     useEffect(() => {
         if (open) {
             fetchComments();
+            fetchTicketDetails();
+            fetchEpics();
         }
-    }, [open, fetchComments]);
+    }, [open, fetchComments, fetchTicketDetails, fetchEpics]);
 
     const handleSendComment = async () => {
         if (!newComment.trim()) return;
@@ -77,6 +122,30 @@ export function TicketDetailModal({ open, onOpenChange, ticket }: TicketDetailMo
         }
     };
 
+    const handleEpicChange = async (value: string) => {
+        const newEpicId = value === "unassigned" ? null : value;
+        setIsUpdatingEpic(true);
+
+        try {
+            const res = await fetch(`/api/tickets/${ticket.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ epicId: newEpicId }),
+            });
+
+            if (!res.ok) throw new Error("Failed to update epic");
+
+            setSelectedEpicId(value);
+            toast.success("Objetivo actualizado");
+            onUpdate();
+        } catch (error) {
+            console.error("Error updating epic:", error);
+            toast.error("Error al actualizar objetivo");
+        } finally {
+            setIsUpdatingEpic(false);
+        }
+    };
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[600px] bg-slate-950 border-slate-800 text-white">
@@ -87,19 +156,58 @@ export function TicketDetailModal({ open, onOpenChange, ticket }: TicketDetailMo
                     </DialogDescription>
                 </DialogHeader>
 
-                <Tabs defaultValue="comments" className="w-full mt-4">
+                <Tabs defaultValue="details" className="w-full mt-4">
                     <TabsList className="bg-slate-900 w-full justify-start">
                         <TabsTrigger value="details">Detalles</TabsTrigger>
                         <TabsTrigger value="comments">Comentarios</TabsTrigger>
                         <TabsTrigger value="history">Historial</TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="details" className="min-h-[300px] py-4">
-                        <div className="space-y-4">
+                    <TabsContent value="details" className="min-h-[300px] py-4 space-y-6">
+                        <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <h4 className="text-sm font-medium text-slate-400">Estado Actual</h4>
-                                <p className="mt-1">{ticket.status}</p>
+                                <h4 className="text-sm font-medium text-slate-400 mb-2">Estado Actual</h4>
+                                <div className="px-3 py-1.5 rounded-md bg-slate-900 border border-slate-800 inline-block text-sm">
+                                    {ticket.status}
+                                </div>
                             </div>
+
+                            <div>
+                                <h4 className="text-sm font-medium text-slate-400 mb-2 flex items-center gap-2">
+                                    <Target className="w-4 h-4" />
+                                    Objetivo Macro
+                                </h4>
+                                {isEpicsLoading ? (
+                                    <div className="flex items-center gap-2 text-sm text-slate-500">
+                                        <Loader2 className="w-3 h-3 animate-spin" /> Cargando...
+                                    </div>
+                                ) : (
+                                    <Select
+                                        value={selectedEpicId || "unassigned"}
+                                        onValueChange={handleEpicChange}
+                                        disabled={isUpdatingEpic}
+                                    >
+                                        <SelectTrigger className="w-full bg-slate-900 border-slate-800 text-slate-200">
+                                            <SelectValue placeholder="Seleccionar Objetivo" />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
+                                            <SelectItem value="unassigned">Sin Objetivo</SelectItem>
+                                            {epics.map((epic) => (
+                                                <SelectItem key={epic.id} value={epic.id}>
+                                                    {epic.title}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="bg-slate-900/30 p-4 rounded-lg border border-slate-800/50">
+                            <h4 className="text-sm font-medium text-slate-400 mb-2">Descripción</h4>
+                            <p className="text-sm text-slate-300 italic">
+                                No hay descripción (Próximamente editor de descripción)
+                            </p>
                         </div>
                     </TabsContent>
 

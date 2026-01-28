@@ -147,24 +147,25 @@ export function ProjectGrid() {
                                 <ArrowRight className="w-4 h-4" />
                             </Button>
 
+                            {(isAdmin || project.createdBy?.email === session?.user?.email) && (
+                                <Button
+                                    variant="destructive"
+                                    size="icon"
+                                    onClick={() => setDeleteId(project.id)}
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </Button>
+                            )}
+
                             {isAdmin && (
-                                <>
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        onClick={() => setAssignProject(project)}
-                                        title="Asignar Equipo"
-                                    >
-                                        <Users className="w-4 h-4" />
-                                    </Button>
-                                    <Button
-                                        variant="destructive"
-                                        size="icon"
-                                        onClick={() => setDeleteId(project.id)}
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </Button>
-                                </>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => setAssignProject(project)}
+                                    title="Asignar Equipo"
+                                >
+                                    <Users className="w-4 h-4" />
+                                </Button>
                             )}
                         </div>
                     </CardContent>

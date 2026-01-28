@@ -34,6 +34,7 @@ interface Ticket {
 interface TicketCardProps {
     ticket: Ticket;
     sprintId: string;
+    projectId: string; // Added prop
     onUpdate: () => void;
 }
 
@@ -47,45 +48,45 @@ const statusConfig: Record<string, {
 }> = {
     READY: {
         icon: PlayCircle,
-        activeColor: "text-cyan-400",
+        activeColor: "text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]",
         label: "Listo para Iniciar",
         bgActive: "bg-cyan-500/20",
-        borderActive: "border-cyan-500/50"
+        borderActive: "border-cyan-500/80"
     },
     TODO: {
         icon: Circle,
-        activeColor: "text-slate-400",
+        activeColor: "text-slate-200 drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]",
         label: "Pendiente",
-        bgActive: "bg-slate-500/20",
-        borderActive: "border-slate-500/50"
+        bgActive: "bg-slate-500/30",
+        borderActive: "border-slate-400/60"
     },
     IN_PROGRESS: {
         icon: Clock,
-        activeColor: "text-blue-400",
+        activeColor: "text-blue-400 drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]",
         label: "En Progreso",
         bgActive: "bg-blue-500/20",
-        borderActive: "border-blue-500/50"
+        borderActive: "border-blue-500/80"
     },
     DONE: {
         icon: CheckCircle,
-        activeColor: "text-green-400",
+        activeColor: "text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]",
         label: "Finalizado",
         bgActive: "bg-green-500/20",
-        borderActive: "border-green-500/50"
+        borderActive: "border-green-500/80"
     },
     BLOCKED: {
         icon: Ban,
-        activeColor: "text-red-400",
+        activeColor: "text-red-400 drop-shadow-[0_0_8px_rgba(248,113,113,0.5)]",
         label: "Bloqueado",
         bgActive: "bg-red-500/20",
-        borderActive: "border-red-500/50"
+        borderActive: "border-red-500/80"
     },
 };
 
 // Order of statuses for the action bar
 const statusOrder = ["READY", "TODO", "IN_PROGRESS", "DONE", "BLOCKED"];
 
-export function TicketCard({ ticket, sprintId, onUpdate }: TicketCardProps) {
+export function TicketCard({ ticket, sprintId, projectId, onUpdate }: TicketCardProps) {
     const [bugModalOpen, setBugModalOpen] = useState(false);
     const [detailModalOpen, setDetailModalOpen] = useState(false);
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -138,7 +139,7 @@ export function TicketCard({ ticket, sprintId, onUpdate }: TicketCardProps) {
 
     return (
         <>
-            <Card className="border-slate-800 card-hover group">
+            <Card className="border-slate-800 card-hover group bg-slate-900/40 hover:bg-slate-900/60 transition-colors">
                 <CardHeader className="pb-2">
                     <CardTitle
                         className="text-sm font-medium text-white leading-tight mb-3 cursor-pointer hover:text-blue-400 hover:underline transition-all"
@@ -172,7 +173,7 @@ export function TicketCard({ ticket, sprintId, onUpdate }: TicketCardProps) {
                                                             config.activeColor,
                                                             "shadow-sm"
                                                         )
-                                                        : "border-slate-700 text-slate-500 hover:border-slate-600 hover:text-slate-400 hover:bg-slate-800/50"
+                                                        : "border-slate-700 text-slate-500 hover:border-slate-500 hover:text-slate-300 hover:bg-slate-800"
                                                 )}
                                                 aria-label={config.label}
                                             >
@@ -230,6 +231,8 @@ export function TicketCard({ ticket, sprintId, onUpdate }: TicketCardProps) {
                 open={detailModalOpen}
                 onOpenChange={setDetailModalOpen}
                 ticket={ticket}
+                projectId={projectId}
+                onUpdate={onUpdate}
             />
 
             <ConfirmDialog

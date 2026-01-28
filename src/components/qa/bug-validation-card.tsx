@@ -78,10 +78,10 @@ export function BugValidationCard({ bug, onValidated }: BugValidationCardProps) 
     return (
         <Card
             className={`border-slate-800 ${isValidated
-                    ? bug.status === "REAL"
-                        ? "border-l-4 border-l-green-500"
-                        : "border-l-4 border-l-red-500"
-                    : ""
+                ? bug.status === "REAL"
+                    ? "border-l-4 border-l-green-500"
+                    : "border-l-4 border-l-red-500"
+                : ""
                 }`}
         >
             <CardHeader className="pb-3">
@@ -136,8 +136,8 @@ export function BugValidationCard({ bug, onValidated }: BugValidationCardProps) 
                 {!isValidated && (
                     <div className="flex items-center gap-2 pt-2">
                         <Button
-                            variant="success"
-                            className="flex-1 gap-2"
+                            variant="default"
+                            className="flex-1 gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-md border border-emerald-500/50"
                             onClick={() => handleValidate("REAL")}
                             isLoading={isValidating === "REAL"}
                             disabled={isValidating !== null}
@@ -161,8 +161,8 @@ export function BugValidationCard({ bug, onValidated }: BugValidationCardProps) 
                 {isValidated && (
                     <div
                         className={`flex items-center gap-2 p-3 rounded-xl ${bug.status === "REAL"
-                                ? "bg-green-500/10 text-green-400"
-                                : "bg-red-500/10 text-red-400"
+                            ? "bg-green-500/10 text-green-400"
+                            : "bg-red-500/10 text-red-400"
                             }`}
                     >
                         {bug.status === "REAL" ? (

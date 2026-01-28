@@ -49,7 +49,7 @@ export function ProjectMeetings({ projectId }: ProjectMeetingsProps) {
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold">Reuniones</h2>
+                <h2 className="text-2xl font-bold text-white">Reuniones</h2>
                 <Button
                     onClick={() => setIsCreateModalOpen(true)}
                     className="bg-purple-600 hover:bg-purple-700"

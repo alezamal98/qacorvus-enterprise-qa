@@ -22,6 +22,7 @@ export async function GET(
                 tickets: {
                     select: {
                         id: true,
+                        title: true,
                         status: true,
                     }
                 }

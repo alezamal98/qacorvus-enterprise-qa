@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Target, Calendar, CheckCircle2 } from "lucide-react";
+import { Plus, Target, Calendar, CheckCircle2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { toast } from "sonner";
 import {
     Dialog,
     DialogContent,
@@ -32,6 +34,11 @@ interface Epic {
     ticketCount: number;
     completedCount: number;
     progress: number;
+    tickets: {
+        id: string;
+        title: string;
+        status: string;
+    }[];
 }
 
 const statusColors: Record<string, string> = {
@@ -48,7 +55,20 @@ const statusLabels: Record<string, string> = {
     CANCELLED: "Cancelado",
 };
 
-export function EpicsTab({ projectId }: { projectId: string }) {
+interface Sprint {
+    id: string;
+    status: string;
+    startDate: string;
+    endDate: string;
+    tickets: {
+        id: string;
+        title: string;
+        status: string;
+        epicId?: string | null;
+    }[];
+}
+
+export function EpicsTab({ projectId, sprints = [] }: { projectId: string; sprints?: Sprint[] }) {
     const [epics, setEpics] = useState<Epic[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -97,6 +117,82 @@ export function EpicsTab({ projectId }: { projectId: string }) {
         }
     };
 
+    // Delete Epic State
+    const [epicToDelete, setEpicToDelete] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const handleDeleteEpic = async () => {
+        if (!epicToDelete) return;
+        setIsDeleting(true);
+        try {
+            const res = await fetch(`/api/epics/${epicToDelete}`, {
+                method: "DELETE",
+            });
+
+            if (!res.ok) throw new Error("Failed to delete epic");
+
+            toast.success("Objetivo eliminado");
+            setEpicToDelete(null);
+            fetchEpics();
+        } catch (error) {
+            console.error(error);
+            toast.error("Error al eliminar objetivo");
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    // Ticket Linking State
+    const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+    const [linkData, setLinkData] = useState({ sprintId: "", ticketIds: [] as string[] });
+    const [linkingEpicId, setLinkingEpicId] = useState<string | null>(null);
+    const [isLinking, setIsLinking] = useState(false);
+
+    // Filter tickets based on selected sprint
+    const selectedSprint = sprints.find(s => s.id === linkData.sprintId);
+    const availableTickets = selectedSprint?.tickets.filter(t => !t.epicId) || [];
+
+    const handleOpenLinkTicket = (epicId: string) => {
+        setLinkingEpicId(epicId);
+        // Default to active sprint if available
+        const activeSprint = sprints.find(s => s.status === "OPEN");
+        setLinkData({ sprintId: activeSprint?.id || "", ticketIds: [] });
+        setIsLinkModalOpen(true);
+    };
+
+    const handleLinkTickets = async () => {
+        if (!linkingEpicId || linkData.ticketIds.length === 0) return;
+
+        setIsLinking(true);
+        try {
+            // Process all updates in parallel
+            await Promise.all(linkData.ticketIds.map(ticketId =>
+                fetch(`/api/tickets/${ticketId}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ epicId: linkingEpicId }),
+                })
+            ));
+
+            setIsLinkModalOpen(false);
+            setLinkData({ sprintId: "", ticketIds: [] });
+            fetchEpics(); // Refresh to show newly linked tickets
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLinking(false);
+        }
+    };
+
+    const toggleTicketSelection = (ticketId: string) => {
+        setLinkData(prev => ({
+            ...prev,
+            ticketIds: prev.ticketIds.includes(ticketId)
+                ? prev.ticketIds.filter(id => id !== ticketId)
+                : [...prev.ticketIds, ticketId]
+        }));
+    };
+
     if (isLoading) {
         return <div className="text-slate-400">Cargando roadmap...</div>;
     }
@@ -105,24 +201,24 @@ export function EpicsTab({ projectId }: { projectId: string }) {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-2xl font-bold">Objetivos</h2>
-                    <p className="text-slate-400 text-sm">Épicas y objetivos del proyecto</p>
+                    <h2 className="text-2xl font-bold text-white">Objetivos Macro</h2>
+                    <p className="text-slate-300 text-sm">Objetivos de alto nivel que agrupan múltiples tickets. No son tareas individuales.</p>
                 </div>
                 <Button
                     onClick={() => setIsCreateModalOpen(true)}
                     className="bg-purple-600 hover:bg-purple-700"
                 >
                     <Plus className="w-4 h-4 mr-2" />
-                    Nuevo Epic
+                    Nuevo Objetivo Macro
                 </Button>
             </div>
 
             {epics.length === 0 ? (
                 <div className="text-center py-20 bg-slate-900 rounded-lg border border-slate-800">
                     <Target className="w-12 h-12 text-slate-500 mx-auto mb-4" />
-                    <h3 className="text-xl font-medium text-slate-300">No hay Epics aún</h3>
+                    <h3 className="text-xl font-medium text-slate-300">No hay Objetivos Macro aún</h3>
                     <p className="text-slate-500 mt-2">
-                        Crea Epics para organizar tus tickets en objetivos más grandes
+                        Crea Objetivos Macro para organizar tus tickets en objetivos más grandes
                     </p>
                 </div>
             ) : (
@@ -137,6 +233,14 @@ export function EpicsTab({ projectId }: { projectId: string }) {
                                     <CardTitle className="text-lg font-semibold">
                                         {epic.title}
                                     </CardTitle>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8 text-slate-500 hover:text-red-400 hover:bg-red-500/10"
+                                        onClick={() => setEpicToDelete(epic.id)}
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </Button>
                                     <Badge
                                         variant="outline"
                                         className={statusColors[epic.status]}
@@ -181,6 +285,35 @@ export function EpicsTab({ projectId }: { projectId: string }) {
                                     </div>
                                 )}
                             </CardContent>
+                            {/* Tickets List */}
+                            <div className="px-6 pb-6 pt-0">
+                                <div className="flex items-center justify-between mb-2">
+                                    <h4 className="text-xs font-semibold text-slate-500 uppercase">Tickets Asociados</h4>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 text-xs text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 px-2"
+                                        onClick={() => handleOpenLinkTicket(epic.id)}
+                                    >
+                                        <Plus className="w-3 h-3 mr-1" />
+                                        Vincular Tickets
+                                    </Button>
+                                </div>
+                                {epic.tickets.length > 0 ? (
+                                    <div className="space-y-1">
+                                        {epic.tickets.map((t) => (
+                                            <div key={t.id} className="flex items-center justify-between text-sm bg-slate-950/30 p-2 rounded border border-slate-800/50">
+                                                <span className="text-slate-300 truncate mr-2">{t.title}</span>
+                                                <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-slate-700 text-slate-400">
+                                                    {t.status}
+                                                </Badge>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-xs text-slate-600 italic">No hay tickets asignados</p>
+                                )}
+                            </div>
                         </Card>
                     ))}
                 </div>
@@ -190,8 +323,9 @@ export function EpicsTab({ projectId }: { projectId: string }) {
             <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
                 <DialogContent className="bg-slate-900 text-white border-slate-700">
                     <DialogHeader>
-                        <DialogTitle>Crear Nuevo Epic</DialogTitle>
+                        <DialogTitle>Crear Nuevo Objetivo Macro</DialogTitle>
                     </DialogHeader>
+                    {/* ... (existing fields) ... */}
                     <div className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="title">Título</Label>
@@ -213,7 +347,7 @@ export function EpicsTab({ projectId }: { projectId: string }) {
                                 onChange={(e) =>
                                     setFormData({ ...formData, description: e.target.value })
                                 }
-                                placeholder="Describe el objetivo de este epic..."
+                                placeholder="Describe este objetivo macro..."
                                 className="bg-slate-800 border-slate-700 min-h-[80px]"
                             />
                         </div>
@@ -262,11 +396,108 @@ export function EpicsTab({ projectId }: { projectId: string }) {
                             onClick={handleCreate}
                             className="bg-purple-600 hover:bg-purple-700"
                         >
-                            Crear Epic
+                            Crear Objetivo
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            {/* Link Ticket Modal */}
+            <Dialog open={isLinkModalOpen} onOpenChange={setIsLinkModalOpen}>
+                <DialogContent className="bg-slate-900 text-white border-slate-700">
+                    <DialogHeader>
+                        <DialogTitle>Vincular Tickets al Objetivo</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="sprint-select">1. Selecciona un Sprint</Label>
+                            <Select
+                                value={linkData.sprintId}
+                                onValueChange={(v) => setLinkData({ ...linkData, sprintId: v, ticketIds: [] })}
+                            >
+                                <SelectTrigger className="bg-slate-800 border-slate-700">
+                                    <SelectValue placeholder="Seleccionar Sprint" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                                    {sprints.filter(s => s.status !== "CLOSED").map((s) => (
+                                        <SelectItem key={s.id} value={s.id}>
+                                            Sprint {new Date(s.startDate).toLocaleDateString()} - {s.status}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label>2. Selecciona los Tickets</Label>
+                            <div className="bg-slate-950 border border-slate-800 rounded-lg p-2 max-h-[200px] overflow-y-auto space-y-1">
+                                {linkData.sprintId ? (
+                                    availableTickets.length > 0 ? (
+                                        availableTickets.map((t) => (
+                                            <div
+                                                key={t.id}
+                                                className={`flex items-center gap-3 p-2 rounded cursor-pointer transition-colors ${linkData.ticketIds.includes(t.id)
+                                                    ? "bg-purple-900/30 border border-purple-500/30"
+                                                    : "hover:bg-slate-900 border border-transparent"
+                                                    }`}
+                                                onClick={() => toggleTicketSelection(t.id)}
+                                            >
+                                                <div className={`w-4 h-4 rounded border flex items-center justify-center ${linkData.ticketIds.includes(t.id)
+                                                    ? "bg-purple-600 border-purple-600"
+                                                    : "border-slate-600"
+                                                    }`}>
+                                                    {linkData.ticketIds.includes(t.id) && <CheckCircle2 className="w-3 h-3 text-white" />}
+                                                </div>
+                                                <div className="flex-1 truncate">
+                                                    <span className="text-sm text-slate-200">{t.title}</span>
+                                                </div>
+                                                <Badge variant="outline" className="text-[10px] text-slate-500">
+                                                    {t.status}
+                                                </Badge>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-xs text-slate-500 p-2 italic">
+                                            No hay tickets disponibles o sin asignar en este sprint.
+                                        </p>
+                                    )
+                                ) : (
+                                    <p className="text-xs text-slate-500 p-2 italic">
+                                        Selecciona un sprint para ver los tickets.
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            variant="ghost"
+                            onClick={() => setIsLinkModalOpen(false)}
+                            className="text-slate-400"
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            onClick={handleLinkTickets}
+                            className="bg-purple-600 hover:bg-purple-700"
+                            disabled={isLinking || linkData.ticketIds.length === 0}
+                        >
+                            {isLinking ? "Vinculando..." : `Vincular ${linkData.ticketIds.length} Ticket(s)`}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <ConfirmDialog
+                open={!!epicToDelete}
+                onOpenChange={(open) => !open && setEpicToDelete(null)}
+                title="Eliminar Objetivo Macro"
+                description="¿Estás seguro de eliminar este objetivo? Los tickets asociados se desvincularán, pero no se eliminarán."
+                confirmText="Eliminar"
+                cancelText="Cancelar"
+                variant="destructive"
+                onConfirm={handleDeleteEpic}
+            />
         </div>
     );
 }

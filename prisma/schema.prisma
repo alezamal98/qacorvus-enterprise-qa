@@ -122,6 +122,7 @@ model Project {
 
 model Sprint {
   id        String       @id @default(cuid())
+  name      String?
   rhythm    SprintRhythm
   status    SprintStatus @default(OPEN)
   startDate DateTime

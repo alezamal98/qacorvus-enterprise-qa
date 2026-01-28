@@ -16,11 +16,8 @@ import {
 import { NotificationsPopover } from "@/components/layout/notifications-popover";
 
 const navigation = [
-    { name: "Dashboard", href: "/", icon: LayoutDashboard },
+    { name: "Inicio", href: "/", icon: LayoutDashboard },
     { name: "Proyectos", href: "/projects", icon: FolderKanban },
-];
-
-const adminNavigation = [
     { name: "Panel QA", href: "/qa-panel", icon: Bug },
 ];
 
@@ -66,35 +63,7 @@ export function Sidebar() {
                     );
                 })}
 
-                {/* Admin Section */}
-                {isAdmin && (
-                    <>
-                        <div className="pt-4 pb-2">
-                            <p className="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                                <Shield className="w-3 h-3" />
-                                Admin
-                            </p>
-                        </div>
-                        {adminNavigation.map((item) => {
-                            const isActive = pathname === item.href;
-                            return (
-                                <Link
-                                    key={item.name}
-                                    href={item.href}
-                                    className={cn(
-                                        "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all",
-                                        isActive
-                                            ? "bg-blue-600 text-white shadow-lg shadow-blue-500/25"
-                                            : "text-slate-400 hover:bg-slate-800 hover:text-white"
-                                    )}
-                                >
-                                    <item.icon className="w-5 h-5" />
-                                    {item.name}
-                                </Link>
-                            );
-                        })}
-                    </>
-                )}
+
             </nav>
 
             {/* User Section */}

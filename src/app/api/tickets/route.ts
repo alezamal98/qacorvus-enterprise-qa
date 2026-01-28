@@ -8,6 +8,7 @@ import { logActivity } from "@/lib/activity";
 const createTicketSchema = z.object({
     title: z.string().min(1, "El título es requerido"),
     sprintId: z.string().min(1, "El sprint es requerido"),
+    epicId: z.string().optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -35,6 +36,7 @@ export async function POST(request: NextRequest) {
             data: {
                 title: validatedData.title,
                 sprintId: validatedData.sprintId,
+                epicId: validatedData.epicId,
                 status: "TODO",
             },
         });
