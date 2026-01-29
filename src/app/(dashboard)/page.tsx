@@ -17,7 +17,14 @@ export default function DashboardPage() {
                         Bienvenido al panel de control de CORVUS QA Enterprise
                     </p>
                 </div>
-                <CreateProjectModal />
+                <div className="flex items-center gap-4">
+                    <img
+                        src="/dashboard-banner.jpg"
+                        alt="Team Member"
+                        className="h-16 w-auto rounded-xl object-cover hidden md:block"
+                    />
+                    <CreateProjectModal />
+                </div>
             </div>
 
             {/* KPI Cards */}
