@@ -41,84 +41,82 @@ export async function GET(request: NextRequest) {
         }
 
         const bugs = await prisma.bug.findMany({
-
-            const bugs = await prisma.bug.findMany({
-                where,
-                include: {
-                    reportedBy: {
-                        select: { name: true, email: true },
-                    },
-                    ticket: {
-                        select: { title: true },
-                    },
-                    sprint: {
-                        select: {
-                            id: true,
-                            project: {
-                                select: { name: true },
-                            },
+            where,
+            include: {
+                reportedBy: {
+                    select: { name: true, email: true },
+                },
+                ticket: {
+                    select: { title: true },
+                },
+                sprint: {
+                    select: {
+                        id: true,
+                        project: {
+                            select: { name: true },
                         },
                     },
                 },
-                orderBy: { createdAt: "desc" },
-            });
+            },
+            orderBy: { createdAt: "desc" },
+        });
 
-            return NextResponse.json(bugs);
-        } catch (error) {
-            console.error("Error fetching bugs:", error);
-            return NextResponse.json(
-                { error: "Error al obtener bugs" },
-                { status: 500 }
-            );
-        }
+        return NextResponse.json(bugs);
+    } catch (error) {
+        console.error("Error fetching bugs:", error);
+        return NextResponse.json(
+            { error: "Error al obtener bugs" },
+            { status: 500 }
+        );
     }
+}
 
 // POST report bug
 export async function POST(request: NextRequest) {
-        try {
-            const session = await getServerSession(authOptions);
+    try {
+        const session = await getServerSession(authOptions);
 
-            if (!session?.user) {
-                return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-            }
+        if (!session?.user) {
+            return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+        }
 
-            const body = await request.json();
-            const validatedData = createBugSchema.parse(body);
+        const body = await request.json();
+        const validatedData = createBugSchema.parse(body);
 
-            const bug = await prisma.bug.create({
-                data: {
-                    ticketId: validatedData.ticketId || null,
-                    sprintId: validatedData.sprintId,
-                    description: validatedData.description,
-                    priority: validatedData.priority,
-                    evidenceUrl: validatedData.evidenceUrl || null,
-                    userId: session.user.id,
-                    status: "PENDING",
+        const bug = await prisma.bug.create({
+            data: {
+                ticketId: validatedData.ticketId || null,
+                sprintId: validatedData.sprintId,
+                description: validatedData.description,
+                priority: validatedData.priority,
+                evidenceUrl: validatedData.evidenceUrl || null,
+                userId: session.user.id,
+                status: "PENDING",
+            },
+            include: {
+                reportedBy: {
+                    select: { name: true },
                 },
-                include: {
-                    reportedBy: {
-                        select: { name: true },
-                    },
-                    ticket: {
-                        select: { title: true },
-                    },
+                ticket: {
+                    select: { title: true },
                 },
-            });
+            },
+        });
 
-            return NextResponse.json(bug, { status: 201 });
-        } catch (error) {
-            if (error instanceof z.ZodError) {
-                const message = error.issues[0]?.message ?? "Invalid input";
-                return NextResponse.json(
-                    { error: message },
-                    { status: 400 }
-                );
-            }
-            console.error("Error reporting bug:", error);
+        return NextResponse.json(bug, { status: 201 });
+    } catch (error) {
+        if (error instanceof z.ZodError) {
+            const message = error.issues[0]?.message ?? "Invalid input";
             return NextResponse.json(
-                { error: "Error al reportar bug" },
-                { status: 500 }
+                { error: message },
+                { status: 400 }
             );
         }
+        console.error("Error reporting bug:", error);
+        return NextResponse.json(
+            { error: "Error al reportar bug" },
+            { status: 500 }
+        );
     }
+}
 
