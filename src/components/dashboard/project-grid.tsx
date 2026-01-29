@@ -41,7 +41,17 @@ export function ProjectGrid() {
         try {
             const res = await fetch("/api/projects");
             const data = await res.json();
-            setProjects(data);
+            if (Array.isArray(data)) {
+                setProjects(data);
+            } else {
+                console.error("API returned invalid format:", data);
+                if (data.error) {
+                    toast.error(`Error del servidor: ${data.error}`);
+                } else {
+                    toast.error("Format de respuesta inválido");
+                }
+                setProjects([]);
+            }
         } catch (error) {
             console.error("Error fetching projects:", error);
             toast.error("Error al cargar proyectos");

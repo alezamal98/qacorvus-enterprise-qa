@@ -20,7 +20,11 @@ export function ChartsContainer() {
                 const res = await fetch("/api/stats");
                 if (res.ok) {
                     const json = await res.json();
-                    setData(json);
+                    if (json.error) {
+                        console.error("API Error:", json.error);
+                    } else {
+                        setData(json);
+                    }
                 }
             } catch (error) {
                 console.error("Failed to fetch analytics", error);

@@ -51,7 +51,10 @@ export async function GET() {
     } catch (error) {
         console.error("Error fetching projects:", error);
         return NextResponse.json(
-            { error: "Error al obtener proyectos" },
+            {
+                error: "Error al obtener proyectos",
+                details: error instanceof Error ? error.message : String(error)
+            },
             { status: 500 }
         );
     }
