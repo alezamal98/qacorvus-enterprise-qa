@@ -4,12 +4,15 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
 // GET user's notifications
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user) {
             return new NextResponse("Unauthorized", { status: 401 });
         }
+
+        const { searchParams } = new URL(request.url);
+        const fetchAll = searchParams.get("all") === "true";
 
         const notifications = await prisma.notification.findMany({
             where: { userId: session.user.id },
@@ -17,7 +20,7 @@ export async function GET() {
                 { read: 'asc' },      // Unread first
                 { createdAt: 'desc' } // Then by date
             ],
-            take: 20,
+            take: fetchAll ? undefined : 20,
         });
 
         return NextResponse.json(notifications);

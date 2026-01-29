@@ -12,12 +12,14 @@ import {
     Bug,
     LogOut,
     Shield,
+    Bell,
 } from "lucide-react";
 import { NotificationsPopover } from "@/components/layout/notifications-popover";
 
 const navigation = [
     { name: "Inicio", href: "/", icon: LayoutDashboard },
     { name: "Proyectos", href: "/projects", icon: FolderKanban },
+    { name: "Notificaciones", href: "/notifications", icon: Bell },
     { name: "Panel QA", href: "/qa-panel", icon: Bug },
 ];
 
