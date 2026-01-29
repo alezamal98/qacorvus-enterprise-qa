@@ -31,7 +31,8 @@ export default function QAPanelPage() {
     const router = useRouter();
     const [bugs, setBugs] = useState<BugData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [searchSprintId, setSearchSprintId] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [appliedSearch, setAppliedSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState<string>("all");
 
     // Check admin access
@@ -46,7 +47,7 @@ export default function QAPanelPage() {
         setIsLoading(true);
         try {
             const params = new URLSearchParams();
-            if (searchSprintId) params.append("sprintId", searchSprintId);
+            if (appliedSearch) params.append("search", appliedSearch);
             if (statusFilter !== "all") params.append("status", statusFilter);
 
             const res = await fetch(`/api/bugs?${params.toString()}`);
@@ -58,7 +59,7 @@ export default function QAPanelPage() {
         } finally {
             setIsLoading(false);
         }
-    }, [searchSprintId, statusFilter]);
+    }, [appliedSearch, statusFilter]);
 
     useEffect(() => {
         fetchBugs();
@@ -66,7 +67,7 @@ export default function QAPanelPage() {
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        fetchBugs();
+        setAppliedSearch(searchQuery);
     };
 
     const stats = {
@@ -122,8 +123,8 @@ export default function QAPanelPage() {
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                             <Input
                                 placeholder="Buscar por nombre de ticket o proyecto..."
-                                value={searchSprintId}
-                                onChange={(e) => setSearchSprintId(e.target.value)}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
                                 className="pl-10 bg-slate-950 border-slate-700"
                             />
                         </div>
@@ -167,7 +168,7 @@ export default function QAPanelPage() {
                     <CardContent className="flex flex-col items-center justify-center py-12">
                         <Bug className="w-12 h-12 text-slate-600 mb-4" />
                         <p className="text-slate-400 text-center">
-                            {searchSprintId
+                            {searchQuery
                                 ? "No se encontraron bugs para este Sprint"
                                 : "No hay bugs registrados"}
                         </p>
