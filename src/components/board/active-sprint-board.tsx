@@ -50,6 +50,7 @@ interface Bug {
 
 interface Sprint {
     id: string;
+    name: string | null;
     rhythm: string;
     status: string;
     startDate: string;
@@ -218,7 +219,7 @@ export function ActiveSprintBoard({
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <div className="flex items-center gap-3 mb-2">
-                            <h2 className="text-xl font-bold text-white">{projectName}</h2>
+                            <h2 className="text-xl font-bold text-white">{sprint.name || projectName}</h2>
                             <Badge variant="default">Sprint Activo</Badge>
                         </div>
                         <div className="flex items-center gap-4 text-sm text-slate-400">
