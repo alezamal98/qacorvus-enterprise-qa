@@ -20,7 +20,7 @@ interface Project {
     endDate: string;
     status: string;
     createdBy: { name: string; email: string };
-    sprints: { id: string }[];
+    sprints: { id: string; name: string | null }[];
     _count: { sprints: number };
 }
 
@@ -46,7 +46,7 @@ export function ProjectGrid() {
             } else {
                 console.error("API returned invalid format:", data);
                 if (data.error) {
-                    toast.error(`Error del servidor: ${data.error}`);
+                    toast.error(`Error: ${data.error}${data.details ? ` (${data.details})` : ''}`);
                 } else {
                     toast.error("Format de respuesta inválido");
                 }
@@ -143,7 +143,7 @@ export function ProjectGrid() {
                             <span>{project._count.sprints} Sprints</span>
                             {project.sprints.length > 0 && (
                                 <Badge variant="default" className="ml-auto">
-                                    Sprint Activo
+                                    {project.sprints[0].name || "Sprint Activo"}
                                 </Badge>
                             )}
                         </div>

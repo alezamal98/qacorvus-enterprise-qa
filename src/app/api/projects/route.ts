@@ -38,7 +38,7 @@ export async function GET() {
                 },
                 sprints: {
                     where: { status: "OPEN" },
-                    select: { id: true },
+                    select: { id: true, name: true },
                 },
                 _count: {
                     select: { sprints: true },
