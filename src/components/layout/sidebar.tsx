@@ -68,6 +68,15 @@ export function Sidebar() {
 
             </nav>
 
+            {/* Sidebar Image */}
+            <div className="px-4 py-2 flex-1 flex items-center justify-center">
+                <img
+                    src="/sidebar-image.jpg"
+                    alt="Team"
+                    className="w-full h-auto max-h-48 rounded-xl object-cover opacity-90 hover:opacity-100 transition-opacity"
+                />
+            </div>
+
             {/* User Section */}
             <div className="p-4 border-t border-slate-800">
                 <div className="flex items-center gap-3 mb-4">
